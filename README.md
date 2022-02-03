@@ -1,4 +1,4 @@
-# PET LOCATOR
+# Pet Locator
 
 React app to locate pets (cats and dogs) on a map.
 
