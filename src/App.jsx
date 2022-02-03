@@ -4,6 +4,7 @@ import {
   InfoWindow,
   Marker,
   useLoadScript,
+  MarkerClusterer,
 } from '@react-google-maps/api'
 
 import { formatRelative } from 'date-fns'
@@ -27,6 +28,12 @@ const options = {
   disableDefaultUI: true,
   zoomControl: true,
 }
+
+// To set custom clusters I would need to style them or use custom icons...
+// These are the defaults basically, commented or not I would get the same cluster markers
+// const markerOptions = {
+//   imagePath: '/markerclusterer/m', // so you must have m1.png, m2.png, m3.png, m4.png, m5.png and m6.png in that folder
+// }
 
 function App() {
   const { isLoaded, loadError } = useLoadScript({
@@ -69,16 +76,22 @@ function App() {
   if (!isLoaded) return 'Loading Map'
   return (
     <div>
-      <h1>Pets</h1>
-      <div className="button-container">
-        <button onClick={() => changePet('cat')}>Cat</button>
-        <button onClick={() => changePet('dog')}>Dog</button>
+      <div className="container">
+        <h1>Pets</h1>
+        <div className="button-container">
+          <a onClick={() => changePet('cat')}>
+            <img src="/cat.svg" alt="Cat icon" />
+          </a>
+          <a onClick={() => changePet('dog')}>
+            <img src="/dog.svg" alt="Dog icon" />
+          </a>
+        </div>
+        {!petType && (
+          <div className="if-no-type">Please select a pet type to start</div>
+        )}
+        <Search panTo={panTo} />
+        <Locate panTo={panTo} />
       </div>
-      {!petType && (
-        <div className="if-no-type">Please select a pet type to start</div>
-      )}
-      <Search panTo={panTo} />
-      <Locate panTo={panTo} />
       <GoogleMap
         mapContainerStyle={mapContainerStyle}
         zoom={11}
@@ -87,19 +100,29 @@ function App() {
         onClick={onMapClick}
         onLoad={onMapLoad}
       >
-        {markers.map((marker) => (
-          <Marker
-            key={marker.time.toISOString()}
-            position={{ lat: marker.lat, lng: marker.lng }}
-            icon={{
-              url: marker.type === 'cat' ? '/cat.svg' : '/dog.svg',
-              scaledSize: new window.google.maps.Size(40, 40),
-              origin: new window.google.maps.Point(0, 0),
-              anchor: new window.google.maps.Point(20, 20),
-            }}
-            onClick={() => setSelected(marker)}
-          ></Marker>
-        ))}
+        <MarkerClusterer
+          averageCenter
+          // options={markerOptions} //Use default cluster markers
+          enableRetinaIcons
+          gridSize={20}
+        >
+          {(clusterer) =>
+            markers.map((marker) => (
+              <Marker
+                key={marker.time.toISOString()}
+                position={{ lat: marker.lat, lng: marker.lng }}
+                icon={{
+                  url: marker.type === 'cat' ? '/cat.svg' : '/dog.svg',
+                  scaledSize: new window.google.maps.Size(30, 30),
+                  origin: new window.google.maps.Point(0, 0),
+                  anchor: new window.google.maps.Point(15, 15),
+                }}
+                onClick={() => setSelected(marker)}
+                clusterer={clusterer}
+              />
+            ))
+          }
+        </MarkerClusterer>
         {selected && (
           <InfoWindow
             position={{ lat: selected.lat, lng: selected.lng }}
